@@ -74,8 +74,6 @@ src/ui        HUD, minimap and map, touch controls
 tools/        mesh baker and automated playtests
 ```
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the module contracts and conventions.
-
 ## Built with
 
 [three.js](https://threejs.org), [postprocessing](https://github.com/pmndrs/postprocessing), [N8AO](https://github.com/N8python/n8ao), [fflate](https://github.com/101arrowz/fflate), [meshoptimizer](https://github.com/zeux/meshoptimizer), [esbuild](https://esbuild.github.io) and [Playwright](https://playwright.dev).

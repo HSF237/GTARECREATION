@@ -7,6 +7,7 @@ import { clamp, wrapAngle } from '../core/math.js';
 import { WEAPONS } from '../game/combat.js';
 
 const CSS = `
+html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 #sh-touch{position:absolute;inset:0;pointer-events:none;--u:1;--il:max(10px,env(safe-area-inset-left));--ir:max(10px,env(safe-area-inset-right));--ib:max(10px,env(safe-area-inset-bottom));--it:max(8px,env(safe-area-inset-top))}
 #sh-touch.dis,#sh-touch.off{display:none}
 #sh-touch .tb{position:absolute;pointer-events:auto;touch-action:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-sizing:border-box;
@@ -72,10 +73,10 @@ const CSS = `
 #sh-ui.touch #sh-wpn small{font-size:11px}
 #sh-ui.touch #sh-heat{font-size:14px;margin-top:2px;min-height:16px}
 #sh-ui.touch #sh-speed{right:max(12px,env(safe-area-inset-right));bottom:auto;top:calc(max(6px,env(safe-area-inset-top)) + 96px)}
-#sh-ui.touch #sh-speed .v{font-size:30px}
-#sh-ui.touch #sh-speed .u{font-size:11px}
-#sh-ui.touch #sh-speed .n{font-size:10px;margin-top:2px}
-#sh-ui.touch #sh-speed .dmg{width:96px}
+#sh-ui.touch #sh-speed .v{font-size:26px;display:inline-block}
+#sh-ui.touch #sh-speed .u{font-size:10px;display:inline-block;margin-left:5px}
+#sh-ui.touch #sh-speed .n{font-size:10px;margin-top:1px}
+#sh-ui.touch #sh-speed .dmg{width:96px;margin-top:4px}
 #sh-ui.touch #sh-zone{right:auto;left:50%;transform:translateX(-50%);bottom:calc(max(8px,env(safe-area-inset-bottom)) + 50px);text-align:center;font-size:22px;white-space:nowrap}
 #sh-ui.touch #sh-obj{bottom:max(8px,env(safe-area-inset-bottom));max-width:min(420px,38vw);font-size:13px;line-height:1.3}
 #sh-ui.touch #sh-sub{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 44px);max-width:min(560px,52vw);font-size:14px}
@@ -88,6 +89,25 @@ const CSS = `
 #sh-ui.touch #sh-notes div{font-size:12px;padding:6px 12px}
 #sh-ui.touch #sh-radio{top:calc(max(8px,env(safe-area-inset-top)) + 52px);font-size:18px}
 #sh-ui.touch .sh-keys{font-size:12px}
+#sh-ui.touch #sh-shop .foot{position:sticky;bottom:0;background:#0b0a12;padding:6px 0 2px}
+@media (max-height:320px){
+ #sh-ui.touch .sh-title{font-size:min(13vh,9vw)}
+ #sh-ui.touch .sh-sub{margin-top:5px}
+ #sh-ui.touch .sh-btn{margin-top:9px;padding:8px 22px;font-size:14px}
+ #sh-ui.touch .sh-keys{margin-top:7px;padding:6px 12px;gap:2px 14px;font-size:11px;line-height:1.25}
+ #sh-ui.touch .sh-note{margin-top:5px;font-size:10.5px;line-height:1.35}
+}
+@media (orientation:landscape) and (max-height:430px){
+ #sh-ui.touch #sh-shop{width:min(600px,calc(100% - 2 * max(10px,env(safe-area-inset-left)) - 8px));display:grid;grid-template-columns:1fr 1fr;column-gap:8px;align-content:start}
+ #sh-ui.touch #sh-shop h3,#sh-ui.touch #sh-shop .cash,#sh-ui.touch #sh-shop .foot{grid-column:1/-1}
+ #sh-ui.touch #sh-shop button.item{padding:7px 10px;margin-top:6px}
+ #sh-ui.touch #sh-shop .item small{display:block;margin-left:0}
+}
+@media (orientation:landscape){
+ #sh-ui.touch #sh-speed{right:auto;left:max(10px,env(safe-area-inset-left));top:calc(max(8px,env(safe-area-inset-top)) + 112px);text-align:left}
+ #sh-ui.touch #sh-speed .dmg{margin-left:0}
+ #sh-ui.touch #sh-radio{left:auto;right:max(12px,env(safe-area-inset-right));transform:none;text-align:right;top:calc(max(6px,env(safe-area-inset-top)) + 100px)}
+}
 @media (orientation:portrait){
  #sh-ui.touch #sh-help{left:max(10px,env(safe-area-inset-left));top:calc(max(8px,env(safe-area-inset-top)) + 170px);max-width:62vw}
  #sh-touch #tb-cam{left:var(--il);top:calc(var(--it) + 116px)}
@@ -96,6 +116,8 @@ const CSS = `
  #sh-ui.touch #sh-obj{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 240px)}
  #sh-ui.touch #sh-sub{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 290px)}
  #sh-ui.touch #sh-zone{bottom:auto;top:42%}
+ #sh-ui.touch #sh-radio{top:calc(max(8px,env(safe-area-inset-top)) + 108px);font-size:13px;letter-spacing:.1em;max-width:calc(100% - 2 * (max(12px,env(safe-area-inset-right)) + 104px))}
+ #sh-ui.touch #sh-radio small{font-size:10px;letter-spacing:.08em}
 }`;
 
 const ICON = {
@@ -248,6 +270,7 @@ export class TouchControls {
     document.addEventListener('contextmenu', (e) => { if (this.active) e.preventDefault(); });
     window.addEventListener('resize', () => this._layout());
     window.addEventListener('orientationchange', () => setTimeout(() => this._layout(), 250));
+    if (window.visualViewport) visualViewport.addEventListener('resize', () => this._layout());
   }
 
   setActive(on) {
@@ -265,16 +288,26 @@ export class TouchControls {
   _playing() { const g = this.game; return g.started && !g.paused && !g.mapOpen && !g.menuOpen; }
 
   _layout() {
-    const w = innerWidth, h = innerHeight;
+    const w = this._lw = innerWidth, h = this._lh = innerHeight;
     this.portrait = h > w * 1.05;
-    // one size unit for all controls: compact phones in landscape up to large tablets
-    const u = this.u = clamp(Math.min(w, h) / 390, 0.82, 1.35);
+    // safe areas (notches, rounded corners, home indicator)
+    let sf = { l: 0, r: 0, t: 0, b: 0 };
+    try { const cs = getComputedStyle(this.el.probe); sf = { l: parseFloat(cs.paddingLeft) || 0, r: parseFloat(cs.paddingRight) || 0, t: parseFloat(cs.paddingTop) || 0, b: parseFloat(cs.paddingBottom) || 0 }; } catch (e) { /* no insets */ }
+    this.safe = sf;
+    const iv = Math.max(8, sf.t) + Math.max(10, sf.b), ih = Math.max(10, sf.l) + Math.max(10, sf.r);
+    // one size unit for all controls, from compact phones up to large tablets. It also shrinks to the
+    // room that is really there (Safari toolbars, in-app browsers, notches) so nothing collides:
+    // sideways the right cluster must stay under the cash/clock stack (and the radio name) and the move
+    // stick under the minimap column with the speedometer; upright the stick and the cluster share the
+    // bottom row.
+    let u = Math.min(w, h) / 390;
+    if (this.portrait) u = Math.min(u, (w - ih - 6) / 370);
+    else u = Math.min(u, (h - iv - 100) / 206, (h - iv - 140) / 178, (h - iv - 167) / 128);
+    u = this.u = clamp(u, 0.6, 1.35);
     this.root.style.setProperty('--u', u.toFixed(3));
     this.game.hud.root.style.setProperty('--tu', u.toFixed(3));
     this.R = 52 * u;
     this.el.stick.style.setProperty('--R', this.R.toFixed(1) + 'px');
-    // safe areas (notches, home indicator) keep the stick's resting spot reachable
-    try { const cs = getComputedStyle(this.el.probe); this.safe = { l: parseFloat(cs.paddingLeft) || 0, b: parseFloat(cs.paddingBottom) || 0 }; } catch (e) { this.safe = { l: 0, b: 0 }; }
     this.rotEl.classList.toggle('gone', !(this.active && this.portrait && !this.rotateDismissed));
     if (this.stick.id == null) this._stickIdle();
   }
@@ -395,6 +428,7 @@ export class TouchControls {
   /** Per frame, before Input.poll(): turn stick and button state into actions and axes. */
   update(dt) {
     if (!this.active) return;
+    if (innerWidth !== this._lw || innerHeight !== this._lh) this._layout();
     const g = this.game, P = g.player, I = this.input, A = I.vAxes;
     const playing = this._playing();
     this.root.classList.toggle('off', !playing);

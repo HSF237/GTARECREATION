@@ -1,8 +1,8 @@
-# GTA RECREATION: Sol Harbor
+# Sol Harbor
 
 An open-world crime and driving game that runs in the browser, built from scratch with three.js and WebGL 2.
 
-**Play it:** https://hsf237.github.io/GTARECREATION/ (desktop and phone)
+**Play it:** https://hsf237.github.io/sol-harbor/ (desktop and phone)
 
 Sol Harbor is inspired by the big open-world crime games, but everything in it is original: the island city, the characters, the cars, the missions and the radio music (generated live in the browser). No names, art, audio or code from any existing game are used, and this project is not affiliated with Rockstar Games or Take-Two Interactive.
 
